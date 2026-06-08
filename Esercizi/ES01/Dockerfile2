@@ -1,0 +1,28 @@
+FROM debian:latest
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    vim \
+    wget \
+    nano \
+    net-tools \
+    iputils-ping \
+    iproute2 \
+    htop \
+    jq \
+    dnsutils \
+    procps \
+    && rm -rf /var/lib/apt/lists/* \
+    && cd ~ \
+    && wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz \
+    && mkdir openshift \
+    && tar -zxvf openshift-client-linux.tar.gz -C openshift \
+    && echo 'export PATH=$PATH:~/openshift' >> ~/.bashrc \
+    && rm openshift-client-linux.tar.gz \
+    && echo 'export API_SERVER=https://api.corsodgs00035.northeurope.aroapp.io:6443/' >> ~/.bashrc \
+    && echo 'export KUBE_VAR=' >> ~/.bashrc \
+    && /bin/bash
+
+#RUN source ~/.bashrc
+
