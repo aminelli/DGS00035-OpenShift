@@ -8,6 +8,6 @@ docker push aminelli/cli-oc:v1
 
 ```sh
 docker build -t oc-admin:v2 -f Dockerfile2 --no-cache .
-docker tag cnt-oc-admin:v1 aminelli/cli-oc:v1
-docker push aminelli/cli-oc:v1
+docker tag oc-admin:v2 aminelli/cli-oc:v2
+docker push aminelli/cli-oc:v2
 ```
