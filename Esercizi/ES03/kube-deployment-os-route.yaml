@@ -1,0 +1,20 @@
+
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: svc-leo-app
+  namespace: prj-antonio-minelli
+  labels:
+    app: leo-app
+    env: prod
+  annotations:
+    openshift.io/host.generated: 'true'
+spec:
+  host: svc-leo-app-prj-antonio-minelli.apps.corsodgs00035.northeurope.aroapp.io
+  to:
+    kind: Service
+    name: svc-leo-app
+    weight: 100
+  port:
+    targetPort: http
+  wildcardPolicy: None

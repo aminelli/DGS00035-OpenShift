@@ -86,7 +86,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: svc-leo-app
+  name: svc-leo-app2
   namespace: prj-antonio-minelli
   labels:
     app: leo-app
@@ -96,7 +96,7 @@ metadata:
     owner: "Antonio Minelli"
     build-version: "1.0.0"
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: leo-app
     env: prod
@@ -105,6 +105,6 @@ spec:
     protocol: TCP
     port: 9080         # Porta del service (interna al cluster)
     targetPort: 8080   # Porta del pod a cui il service inoltra il traffico 
-    
+    nodePort: 30080    # Porta esposta sui nodi del cluster per accesso esterno (30000-32767)
 ---
 
