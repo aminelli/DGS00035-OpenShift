@@ -14,6 +14,16 @@ metadata:
     build-version: "1.0.0"
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: leo-app
+      env: prod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1 # Max 1 pod non disponibile durante l'aggiornamento
+      maxSurge: 1       # Max 1 pod in più durante l'aggiornamento
+  # modello del pod
   template:
     metadata:
       name: pod-leo-app
@@ -41,3 +51,58 @@ spec:
           limits:
             cpu: "1024m"
             memory: "1024Mi"
+        # Configurazione health check per monitoraggio stato applicazione
+        # StartupProbe: verifica se l'applicazione è avviata correttamente
+        startupProbe:
+          httpGet: 
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          failureThreshold: 5
+        # LivenessProbe: verifica se l'applicazione è in salute durante l'esecuzione
+        # Se health check fallisce, Kubernetes riavvierà il pod per tentare di risolvere il problema
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 60
+          failureThreshold: 3
+        # ReadinessProbe: verifica se l'applicazione è pronta a ricevere traffico
+        # Se health check fallisce, Kubernetes rimuoverà il pod dal servizio fino a quando non sarà di nuovo pronto
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 3
+      # Terminazione graceful con 60 secondi per consentire all'applicazione di chiudersi correttamente
+      terminationGracePeriodSeconds: 60
+
+---
+# Service per esporre l'applicazione demo all'interno del cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-leo-app
+  namespace: prj-antonio-minelli
+  labels:
+    app: leo-app
+    env: prod
+  annotations:
+    description: "Service per esporre l'applicazione demo"
+    owner: "Antonio Minelli"
+    build-version: "1.0.0"
+spec:
+  type: ClusterIP
+  selector:
+    app: leo-app
+    env: prod
+  ports:
+  - name: http
+    protocol: TCP
+    port: 9080         # Porta del service (interna al cluster)
+    targetPort: 8080   # Porta del pod a cui il service inoltra il traffico 
+    
