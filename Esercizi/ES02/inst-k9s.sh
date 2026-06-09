@@ -1,5 +1,6 @@
 #!/bin/bash
 # Installazione K9s
+apt-get update
 echo "export TERM=xterm-256color" >> ~/.bashrc
 source ~/.bashrc
 mkdir $HOME/downloads

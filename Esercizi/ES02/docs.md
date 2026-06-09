@@ -5,5 +5,4 @@ nano ~/.bashrc
 
 source ~/.bashrc
 oc login $API_SERVER --username kubeadmin --password $KUBE_VAR
-source ~/.bashrc
 ```
