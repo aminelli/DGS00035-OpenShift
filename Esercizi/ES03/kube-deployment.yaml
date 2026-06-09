@@ -1,0 +1,43 @@
+# OpenShift  version: 4.20.15
+# Kubernetes version: v1.33.6
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dep-leo-app
+  namespace: prj-antonio-minelli
+  labels:
+    app: leo-app
+    env: prod
+  annotations:
+    description: "Deployment per eseguire l'applicazione demo"
+    owner: "Antonio Minelli"
+    build-version: "1.0.0"
+spec:
+  replicas: 3
+  template:
+    metadata:
+      name: pod-leo-app
+      labels:
+        app: leo-app
+        env: prod
+    spec:
+      containers:
+      - name: cnt-leo-app
+        image: aminelli/webapp-leo:v1.0
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        # Iniziezioni variabili di ambiente per configurazione profili Spring e opzioni JVM
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: prod
+        - name: JAVA_OPTS
+          value: "-Xms512m -Xmx1024m"
+        # Limiti risorse per CPU e memoria
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1024m"
+            memory: "1024Mi"
