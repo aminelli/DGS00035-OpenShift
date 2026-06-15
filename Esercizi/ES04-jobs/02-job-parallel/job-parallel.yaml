@@ -39,6 +39,7 @@ spec:
               echo "Elaborazione shard [$SHARD_START - $SHARD_END]..."
               sleep $(( (JOB_COMPLETION_INDEX % 3) + 2 ))
               echo "Shard $JOB_COMPLETION_INDEX completato."
+              sleep 10
           env:
             - name: JOB_COMPLETION_INDEX
               valueFrom:
