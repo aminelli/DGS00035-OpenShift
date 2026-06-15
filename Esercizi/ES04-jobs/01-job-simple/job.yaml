@@ -8,8 +8,8 @@ metadata:
     env: test
     jobType: type1
 spec:
-  # auto-cleanup job dopo 5 minuti dalla terminazione
-  ttlSecondsAfterFinished: 300
+  # auto-cleanup job dopo 10 secondi dalla terminazione
+  ttlSecondsAfterFinished: 10
   # max 2 tentativi in caso di fallimento
   backoffLimit: 3
   template:
