@@ -21,18 +21,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - key: environment
-                operator: In
-                values:
-                - prod
               - key: disktype
                 operator: In
                 values:
-                - ssd
-              - key: tier
-                operator: In
-                values: [worker, compute]
-          
+                - hdd
       containers:
       - name: cnt-daemon-affinity
         image: busybox:1.36
