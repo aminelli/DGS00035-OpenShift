@@ -11,7 +11,7 @@ spec:
   # ogni job lanciato avrà un idice (0..5)
   completions: 6
   # massimo 3 job in parallelo
-  parrallelism: 3
+  parallelism: 3
   # Per ogni pod, verrà aggiunta nella annotation "batch.kubernetes.io/job-completion-index" l'indice del job (0..5)
   completionMode: Indexed
   # Se un job fallisce, verrà ritentato al massimo 2 volte prima di essere considerato definitivamente fallito
