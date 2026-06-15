@@ -3,9 +3,9 @@ kind: Job
 metadata:
   name: job-sequential
   labels:
-    scenario: job-completions
+    scenario: job-sequential
 spec:
-  completions: 4             # 4 esecuzioni sequenziali
+  completions: 6             # 6 esecuzioni sequenziali
   parallelism: 1             # una alla volta
   backoffLimit: 2
   activeDeadlineSeconds: 180 # timeout globale: 3 minuti
@@ -13,7 +13,8 @@ spec:
   template:
     metadata:
       labels:
-        scenario: job-completions
+        name: pod-job-sequential
+        scenario: job-sequential
     spec:
       restartPolicy: Never
       containers:
