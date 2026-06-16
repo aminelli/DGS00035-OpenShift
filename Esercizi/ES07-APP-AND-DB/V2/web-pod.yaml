@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-web-app
+  namespace: prj-antonio-minelli
+  labels:
+    app: web-app
+spec:
+  containers:
+  - name: cnt-web-app
+    image: docker.io/bmuschko/web-app:1.0.1
+    envFrom:
+    - configMapRef:
+        name: configmap-web-app
+    # env:
+    # - name: DB_HOST
+    #   value: svc-mysql-db
+    #   # value: svc-mysql-db.prj-antonio-minelli.svc.cluster.local
+    # - name: DB_USER
+    #   value: root
+    # - name: DB_PASSWORD
+    #   value: Password123
+
+    ports:
+    - containerPort: 3000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-web-app
+  namespace: prj-antonio-minelli
+spec:
+  type: ClusterIP
+  selector:
+    app: web-app
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
