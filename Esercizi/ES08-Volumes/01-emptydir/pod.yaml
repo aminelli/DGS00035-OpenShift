@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-demo-emptydir
+  namespace: prj-antonio-minelli
+  labels:
+    app: app-demo
+spec:
+  restartPolicy: Never
+  containers:
+  - name: cnt-writer
+    image: docker.io/busybox:1.36
+    command: ["sh", "-c"]
+    args:
+      - |
+        echo "[writer] Avvio scrittura su volume in shared...." 
+        i=1
+        while [ $i -le 1000 ]; do
+          echo "[writer] Scrivo numero $i su volume in shared...." 
+          echo "Numero $i scritto su volume in shared alle $(date)" >> /shared/data.txt
+          i=$((i+1))
+          sleep 3
+        done
+        echo "[writer] Finita scrittura su volume in shared...."
+        ls -lh /shared/
+        cat /shared/data.txt
+        sleep infinity
+    volumeMounts:
+    - name: shared-volume
+      mountPath: /shared
+    resources:
+      requests: { cpu: 50m, memory: 16Mi }
+      limits: { cpu: 100m, memory: 32Mi }
+
+  - name: cnt-reader
+    image: docker.io/busybox:1.36
+    command: ["sh", "-c"]
+    args:
+      - |
+        echo "[reader] Avvio lettura da volume in shared...." 
+        until [ -f /datafiles/data.txt ]; do sleep 2; done
+        echo "[reader] Avvio lettura da volume in shared...." 
+        tail -f /datafiles/data.txt &
+        TAIL_PID=$!
+        sleep 3000
+        kill $TAIL_PID 2>/dev/null
+        echo ""
+        echo "[reader] contenuto finale del file ...." 
+        cat /datafiles/data.txt
+        sleep infinity
+    volumeMounts:
+    - name: shared-volume
+      mountPath: /datafiles
+    resources:
+      requests: { cpu: 50m, memory: 16Mi }
+      limits: { cpu: 100m, memory: 32Mi }
+
+  volumes:
+  - name: shared-volume
+    emptyDir: {}
