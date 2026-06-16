@@ -44,6 +44,13 @@ spec:
               # items:
               #  - key: app.properties
               #    path: /config/app.properties
+          resources:
+            requests:
+              cpu: 50m
+              memory: 8Mi
+            limits:
+              cpu: 100m
+              memory: 16Mi
       volumes:
         - name: volume-config
           configMap:
