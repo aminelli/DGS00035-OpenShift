@@ -13,7 +13,6 @@ spec:
   template:
     metadata:
       name: pod-demo-emptydir
-      namespace: prj-antonio-minelli
       labels:
         app: app-demo    
     spec:
