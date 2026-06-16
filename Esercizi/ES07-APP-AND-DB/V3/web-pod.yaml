@@ -12,6 +12,8 @@ spec:
     envFrom:
     - configMapRef:
         name: configmap-web-app
+    - secretRef:
+        name: secret-web-app
     # env:
     # - name: DB_HOST
     #   value: svc-mysql-db
