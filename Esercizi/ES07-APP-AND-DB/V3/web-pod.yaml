@@ -13,20 +13,13 @@ spec:
     - configMapRef:
         name: configmap-web-app
     - secretRef:
-        name: secret-web-app
-    # env:
-    # - name: DB_HOST
-    #   value: svc-mysql-db
-    #   # value: svc-mysql-db.prj-antonio-minelli.svc.cluster.local
-    # - name: DB_USER
-    #   value: root
-    # - name: DB_PASSWORD
-    #   value: Password123
-
+        name: secret-web-app  
     ports:
     - containerPort: 3000
       protocol: TCP
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
