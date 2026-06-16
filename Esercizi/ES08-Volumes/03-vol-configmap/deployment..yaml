@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-demo
+  namespace: prj-antonio-minelli
+  labels:
+    app: web-demo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-demo
+  template:
+    metadata:
+      name: pod-web-demo
+      labels:
+        app: web-demo
+    spec:
+      containers:
+        - name: cnt-web-demo
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "=========================================================================="
+              echo "File montati da ConfigMap in /config/"
+              ls -la /config/
+              echo "=========================================================================="
+              echo "Contenuto file app.properties"
+              cat /config/app.properties
+              echo "=========================================================================="
+              echo "Contenuto file database.properties"
+              cat /config/database.properties
+              echo "=========================================================================="
+              echo "Contenuto file logging.yaml"
+              cat /config/logging.yaml
+              echo "=========================================================================="
+              sleep infinity
+          volumeMounts:
+            - name: volume-config
+              mountPath: /config
+              readOnly: true
+              # OPZIONE DISPONIBILE: selezionare solo alcune delle chiavi
+              # items:
+              #  - key: app.properties
+              #    path: /config/app.properties
+      volumes:
+        - name: volume-config
+          configMap:
+            name: configmap-custom     
+              
