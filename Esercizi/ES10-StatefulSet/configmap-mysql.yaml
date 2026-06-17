@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: prj-antonio-minelli
+data:
+  my.cnf: |
+    [mysqld]
+    
+    # Rete
+    bind-address            = 0.0.0.0
+    port = 3306
+    
+    # connessioni
+    max_connections         = 200
+
+    # Character set e collation
+    character-set-server    = utf8mb4
+    collation-server        = utf8mb4_unicode_ci
+    
+    # Abilita il binary log per la replica
+    log_bin                 = mysql-bin
+    binlog_format           = ROW
+    expire_logs_days        = 7
+    # server-id             = 1
+    
+    # Performance / INNODB
+    innodb_buffer_pool_size = 256M
+    innodb_log_file_size    = 64M
+    innodb_flush_log_at_trx_commit = 1
+
+    [client]
+    default-character-set    = utf8mb4
+
+    [mysql]
+    default-character-set    = utf8mb4
+
+
+    # default-authentication-plugin = mysql_native_password

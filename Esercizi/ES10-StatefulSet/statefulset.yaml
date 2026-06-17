@@ -1,0 +1,161 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: prj-antonio-minelli
+  labels:
+    app: mysql
+spec:
+  serviceName: mysql-headless       # Riferimento al Headless Service (sezione 04)
+  replicas: 3
+  podManagementPolicy: OrderedReady # mysql-0 pronto → mysql-1 → mysql-2
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      # initContainers: assegna server-id univoco e ruolo Primary/Replica
+      initContainers:
+        - name: init-mysql
+          image: mysql:8.0
+          command:
+            - bash
+            - "-c"
+            - |
+              set -ex
+              # Ricava l'ordinale del Pod dal hostname (mysql-0, mysql-1, mysql-2)
+              ORDINAL=$(hostname | grep -o '[0-9]*$')
+              # server-id: 100 per il Primary, 101/102/... per le Replica
+              SERVER_ID=$((100 + ORDINAL))
+              # Scrivi la configurazione server-id nel file di override
+              echo "[mysqld]" > /mnt/conf.d/server-id.cnf
+              echo "server-id=$SERVER_ID" >> /mnt/conf.d/server-id.cnf
+              # Il Primary (ordinale 0) usa configurazione primaria
+              if [ "$ORDINAL" -eq 0 ]; then
+                echo "Primary MySQL (server-id=$SERVER_ID)"
+              else
+                echo "Replica MySQL (server-id=$SERVER_ID)"
+                echo "read_only=1" >> /mnt/conf.d/server-id.cnf
+              fi
+          volumeMounts:
+            - name: conf
+              mountPath: /mnt/conf.d
+
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - name: mysql
+              containerPort: 3306
+
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+
+          # Monta la ConfigMap (my.cnf) e il volume conf (da initContainer)
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+            - name: mysql-config
+              mountPath: /etc/mysql/conf.d/my.cnf
+              subPath: my.cnf
+            - name: conf
+              mountPath: /etc/mysql/conf.d/server-id.cnf
+              subPath: server-id.cnf
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+
+          # startupProbe: fino a 120s per avviarsi (20 × 6s)
+          startupProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+                - -u
+                - root
+                - --password=$(MYSQL_ROOT_PASSWORD)
+            initialDelaySeconds: 15
+            periodSeconds: 6
+            failureThreshold: 20
+
+          # readinessProbe: MySQL pronto ad accettare connessioni
+          readinessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+                - -u
+                - root
+                - --password=$(MYSQL_ROOT_PASSWORD)
+            periodSeconds: 5
+            failureThreshold: 3
+
+          # livenessProbe: MySQL ancora vivo (non in deadlock)
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+                - -u
+                - root
+                - --password=$(MYSQL_ROOT_PASSWORD)
+            periodSeconds: 10
+            failureThreshold: 3
+
+          # SCC anyuid richiesto per MySQL UID 999
+          securityContext:
+            runAsUser: 999
+
+      volumes:
+        - name: mysql-config
+          configMap:
+            name: mysql-config
+        - name: conf
+          emptyDir: {}   # Volume temporaneo scritto dall'initContainer
+
+  # volumeClaimTemplates: crea PVC dedicato per ogni Pod
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app: mysql
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: managed-csi
+        resources:
+          requests:
+            storage: 10Gi
