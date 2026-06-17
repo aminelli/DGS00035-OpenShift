@@ -2,23 +2,25 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: azurefile-csi-custom
-  namespace: prj-antonio-minelli
+  # namespace: prj-antonio-minelli
 provisioner: file.csi.azure.com
 parameters:
+  subscriptionId: 8855b22a-640a-41db-bdc5-b423cb3e8feb
   resourceGroup: CORSO-DGS00035-OpenShift-storage
-  storageAccount: storagearodemo
-  shareName: appshare
+  storageAccount: storagearotestdemo
+  #shareName: appshare
   secretName: secret-azure-demo
   secretNamespace: prj-antonio-minelli
-  protocol: SMB
-  skuName: Standard_LRS
+  protocol: smb
+  skuName: StandardV2_LRS
+  location: northeurope
 # Reclaim policy: Delete (default) o Retain
 # su delete kubernetes elimina anche il volume creato in Azure, su retain lo lascia
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
 mountOptions:
-  -dir_mode=0777
-  -file_mode=0777
-  -uid=1000
-  -gid=1000
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=1000
+  - gid=1000

@@ -44,6 +44,3 @@ Comandi Utili:
 ```sh
 # Lista delle region
 az account list-locations -o table
-
-```
-

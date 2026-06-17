@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-azure-demo
+  namespace: prj-antonio-minelli
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: azure-demo
+  template:
+    metadata:
+      name: pod-azure-demo
+      labels:
+        app: azure-demo
+    spec:
+      containers:
+      - name: cnt-writer
+        image: busybox:1.36
+        resources:
+          requests: { cpu: 30m, memory: 8Mi }
+          limits: { cpu: 80m, memory: 16Mi }
+        command: ["sh", "-c"]
+        args:
+        - |
+          echo "[writer] Avvio scrittura su volume in shared...." 
+          echo "=========================================================="
+          echo "Pod:       $POD_NAME"
+          echo "Nodo:      $NODE_NAME"
+          echo "Namespace: $POD_NAMESPACE"
+          echo "IP nodo:   $NODE_IP"
+          echo "IP pod:    $POD_IP"
+          echo "=========================================================="
+          i=1
+          while [ $i -le 1000 ]; do
+            echo "[writer] Scrivo numero $i su volume in shared...." 
+            echo "Numero $i scritto su volume in shared alle $(date) su POD $(POD_NAME) di IP $(POD_IP) su NODO $(NODE_NAME) di IP $(NODE_IP)" >> /shared/data.txt
+            i=$((i+1))
+            sleep 3
+          done
+          echo "[writer] Finita scrittura su volume in shared...."
+          ls -lh /shared/
+          cat /shared/data.txt
+          sleep infinity
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName # nome del nodo su cui gira il pod
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP # IP del nodo host
+        volumeMounts:
+          - name: volume-azure-demo
+            mountPath: /shared
+      - name: cnt-reader
+        image: docker.io/busybox:1.36
+        resources:
+          requests: { cpu: 30m, memory: 8Mi }
+          limits: { cpu: 80m, memory: 16Mi }
+        command: ["sh", "-c"]
+        args:
+        - |
+          echo "[writer] Avvio scrittura su volume in shared...." 
+          echo "=========================================================="
+          echo "Pod:       $POD_NAME"
+          echo "Nodo:      $NODE_NAME"
+          echo "Namespace: $POD_NAMESPACE"
+          echo "IP nodo:   $NODE_IP"
+          echo "IP pod:    $POD_IP"
+          echo "=========================================================="        
+          echo "[reader] Avvio lettura da volume in shared...." 
+          until [ -f /datafiles/data.txt ]; do sleep 2; done
+          echo "[reader] Avvio lettura da volume in shared...." 
+          tail -f /datafiles/data.txt &
+          TAIL_PID=$!
+          sleep 3000
+          kill $TAIL_PID 2>/dev/null
+          echo ""
+          echo "[reader] contenuto finale del file ...." 
+          cat /datafiles/data.txt
+          sleep infinity
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName     # nome del nodo su cui gira il pod
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP     # IP del nodo host  
+        volumeMounts:
+        - name: volume-azure-demo
+          mountPath: /datafiles
+
+
+      volumes:
+        - name: volume-azure-demo
+          persistentVolumeClaim:
+            claimName: pvc-azure-demo
