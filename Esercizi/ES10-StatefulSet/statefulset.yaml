@@ -23,11 +23,11 @@ spec:
           image: mysql:8.0
           command:
             - bash
-            - "-c"
+            - -c
             - |
               set -ex
               # Ricava l'ordinale del Pod dal hostname (mysql-0, mysql-1, mysql-2)
-              ORDINAL=$(hostname | grep -o '[0-9]*$')
+              ORDINAL=$(echo "$(HOSTNAME)" | grep -o '[0-9]*$')
               # server-id: 100 per il Primary, 101/102/... per le Replica
               SERVER_ID=$((100 + ORDINAL))
               # Scrivi la configurazione server-id nel file di override
@@ -75,7 +75,7 @@ spec:
 
           # Monta la ConfigMap (my.cnf) e il volume conf (da initContainer)
           volumeMounts:
-            - name: data
+            - name: vol-mysql-data
               mountPath: /var/lib/mysql
             - name: mysql-config
               mountPath: /etc/mysql/conf.d/my.cnf
@@ -149,7 +149,7 @@ spec:
   # volumeClaimTemplates: crea PVC dedicato per ogni Pod
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: vol-mysql-data
         labels:
           app: mysql
       spec:
